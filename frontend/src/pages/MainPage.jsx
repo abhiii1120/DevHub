@@ -1,7 +1,10 @@
 import HeroSection from "@/components/common/components/HeroSection";
 import Navbar from "@/components/common/components/Navbar";
 import { useState } from "react";
-
+import GlassCard from "@/components/common/ui/GlassCard";
+import { ArrowRight, CheckCircle, CheckCircle2, Layers, SquareUser, Terminal } from "lucide-react";
+import { MdAccountBox } from "react-icons/md";
+import FormButton from "@/components/common/ui/FormButton";
 // ─── Reusable Components ───────────────────────────────────────────────────────
 
 /** Icon using Google Material Symbols (loaded via <link> in your index.html) */
@@ -14,7 +17,6 @@ function Icon({ name, className = "" }) {
       {name}
     </span>
   );
-
 }
 
 /** Pill / badge used in the hero section */
@@ -56,26 +58,7 @@ function OutlineButton({ children, onClick, className = "", icon }) {
   );
 }
 
-/** Glass-morphism panel card */
-function GlassCard({ children, className = "", hoverColor = "primary" }) {
-  const hoverMap = {
-    primary: "hover:border-primary/40",
-    secondary: "hover:border-secondary/40",
-    tertiary: "hover:border-tertiary/40",
-  };
-  return (
-    <div
-      className={`
-        bg-[rgba(18,33,49,0.4)] backdrop-blur-[12px]
-        border border-white/10 rounded
-        transition-all ${hoverMap[hoverColor] ?? ""}
-        ${className}
-      `}
-    >
-      {children}
-    </div>
-  );
-}
+
 
 /** Tag chip used in the blog feature card */
 function Tag({ children }) {
@@ -95,7 +78,7 @@ function AvatarStack({ avatars }) {
           key={i}
           src={src}
           alt="User avatar"
-          className="w-10 h-10 rounded-full border-2 border-surface object-cover"
+          className="w-10 h-10 rounded-full border-2 border-[#010F1F] border-surface object-cover"
         />
       ))}
     </div>
@@ -141,13 +124,13 @@ const BRAND_LOGOS = ["GITHUB", "VERCEL", "DOCKER", "STRIPE"];
 
 function SocialProof() {
   return (
-    <section className="py-12 bg-surface-container-lowest border-y border-outline-variant/20">
-      <div className="max-w-[1440px] mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-8">
+    <section className="py-12 bg-surface-container-lowest border-y border-white/5 border-outline-variant/20 bg-[#010F1F]">
+      <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
         {/* Avatars + text */}
         <div className="flex items-center gap-4">
           <AvatarStack avatars={AVATARS} />
           <p className="font-bold text-on-surface">
-            Trusted by <span className="text-primary">50,000+</span> developers
+            Trusted by <span className="text-[#ADC6FF]">50,000+</span> developers
           </p>
         </div>
 
@@ -156,8 +139,8 @@ function SocialProof() {
           {BRAND_LOGOS.map((logo) => (
             <span
               key={logo}
-              className="font-black tracking-tight"
-              style={{ fontFamily: "'Inter', sans-serif", fontSize: "32px", lineHeight: "40px" }}
+              className="font-[#4A545F] tracking-tight"
+              style={{ fontFamily: "'Inter', sans-serif", fontSize: "14px", lineHeight: "40px" }}
             >
               {logo}
             </span>
@@ -226,7 +209,7 @@ function FeaturesBentoGrid() {
         <GlassCard className="md:col-span-8 p-8" hoverColor="primary">
           <div className="flex flex-col md:flex-row gap-8 items-center">
             <div className="flex-1">
-              <Icon name="dynamic_feed" className="text-primary text-4xl mb-6" />
+              <Layers className="text-primary text-4xl mb-6" />
               <h3
                 className="text-on-surface mb-4"
                 style={{ fontFamily: "'Inter', sans-serif", fontSize: "32px", lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: 700 }}
@@ -244,7 +227,7 @@ function FeaturesBentoGrid() {
               >
                 {["Live Preview Integration", "Tech Stack Auto-Detection", "Collaboration Invites"].map((item) => (
                   <li key={item} className="flex items-center gap-2">
-                    <Icon name="check_circle" className="text-primary text-sm" />
+                    <CheckCircle2 className="text-primary text-sm" />
                     {item}
                   </li>
                 ))}
@@ -256,7 +239,7 @@ function FeaturesBentoGrid() {
 
         {/* ── Portfolios (narrow) ── */}
         <GlassCard className="md:col-span-4 p-8 flex flex-col" hoverColor="secondary">
-          <Icon name="account_box" className="text-secondary text-4xl mb-6" />
+          <SquareUser className="text-secondary text-4xl mb-6" />
           <h3
             className="text-on-surface mb-4"
             style={{ fontFamily: "'Inter', sans-serif", fontSize: "32px", lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: 700 }}
@@ -267,7 +250,7 @@ function FeaturesBentoGrid() {
             An automated, SEO-optimized personal site that updates as you build.
             No maintenance required.
           </p>
-          <div className="mt-8 pt-8 border-t border-outline-variant/20">
+          <div className="mt-8 pt-8 border-t border-white/5 border-outline-variant/20">
             <div className="flex items-center justify-between">
               <span
                 className="opacity-60 uppercase"
@@ -275,14 +258,15 @@ function FeaturesBentoGrid() {
               >
                 Theme: Terminal Dark
               </span>
-              <Icon name="arrow_forward" className="text-on-surface-variant" />
+              <ArrowRight className="text-on-surface-variant" />
             </div>
           </div>
         </GlassCard>
 
-        {/* ── Technical Blogs (narrow) ── */}
         <GlassCard className="md:col-span-4 p-8 flex flex-col" hoverColor="tertiary">
-          <Icon name="terminal" className="text-tertiary text-4xl mb-6" />
+          <div className="p-2 py-1 bg-blue-900/50 h-fit w-fit mb-6 rounded-md">
+          <Terminal className="text-tertiary text-4xl  " />
+          </div>
           <h3
             className="text-on-surface mb-4"
             style={{ fontFamily: "'Inter', sans-serif", fontSize: "32px", lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: 700 }}
@@ -299,7 +283,6 @@ function FeaturesBentoGrid() {
           </div>
         </GlassCard>
 
-        {/* ── CTA card (wide) ── */}
         <div className="md:col-span-8 bg-primary-container/20 border border-primary/20 p-8 rounded flex flex-col md:flex-row items-center gap-8">
           <div className="flex-1">
             <h3
@@ -312,9 +295,9 @@ function FeaturesBentoGrid() {
               Join the elite circle of developers building the future of the web.
             </p>
           </div>
-          <PrimaryButton className="px-10 py-4 hover:scale-105 whitespace-nowrap">
+          <FormButton className="px-14 py-8 hover:scale-105 whitespace-nowrap w-fit rounded-md bg-[#ADC6FF] text-gray-900">
             Join Community
-          </PrimaryButton>
+          </FormButton>
         </div>
       </div>
     </section>
@@ -368,7 +351,7 @@ function Footer() {
             DevStack
           </span>
           <p className="mt-4 text-on-surface-variant max-w-xs opacity-80">
-            © 2024 DevStack Platform. Built for Technical Precision.
+            © 2026 DevStack Platform. Built for Technical Precision.
           </p>
         </div>
 
@@ -383,7 +366,6 @@ function Footer() {
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DevStackPage() {
   return (
