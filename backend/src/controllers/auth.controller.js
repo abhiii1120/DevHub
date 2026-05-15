@@ -29,9 +29,9 @@ let registerController = asyncHandler(async (req, res) => {
   });
 
   res.cookie("token", token, {
-  httpOnly: true,
-  secure: false,
-});
+    httpOnly: true,
+    secure: false,
+  });
   return res
     .status(201)
     .json(
@@ -165,9 +165,38 @@ const resetPasswordController = asyncHandler(async (req, res) => {
 
   return res.status(200).json(new ApiResponse("Password reset successful"));
 });
+const verifyOtpController = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    throw new ApiError(400, "Email and OTP are required");
+  }
+  console.log("BODY:", req.body);
+  const user = await UserModel.findOne({ email });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Hash incoming OTP
+  const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
+
+  // Validate OTP
+  if (user.resetPasswordOTP !== hashedOTP) {
+    throw new ApiError(400, "Invalid OTP");
+  }
+
+  // Validate Expiry
+  if (user.resetPasswordOTPExpiry < Date.now()) {
+    throw new ApiError(400, "OTP expired");
+  }
+
+  return res.status(200).json(new ApiResponse("OTP verified successfully"));
+});
 module.exports = {
   registerController,
   loginController,
   forgotPasswordController,
+  verifyOtpController,
   resetPasswordController,
 };

@@ -3,9 +3,9 @@ import { useSelector } from "react-redux";
 import { Navigate, Outlet } from "react-router";
 
 const PublicRoutes = () => {
-  const { isAuthenticated, isLoading } = useSelector((store) => store.auth);
-
-  if (isLoading) return <div>Loading...</div>;
+  const { isAuthenticated } = useSelector(
+    (store) => store.auth
+  );
 
   if (isAuthenticated) {
     return <Navigate to="/main" />;

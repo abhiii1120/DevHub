@@ -1,5 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { loginUser, signupUser } from "./actions/authAction";
+import {
+  loginUser,
+  signupUser,
+  forgotPassword,
+  verifyOtp,
+  resetPassword,
+} from "./actions/authAction";
 
 let authSlice = createSlice({
   name: "auth",
@@ -50,6 +56,48 @@ let authSlice = createSlice({
       })
 
       .addCase(loginUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // FORGOT PASSWORD
+      .addCase(forgotPassword.pending, (state) => {
+        state.isLoading = true;
+      })
+
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // VERIFY OTP
+      .addCase(verifyOtp.pending, (state) => {
+        state.isLoading = true;
+      })
+
+      .addCase(verifyOtp.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+
+      .addCase(verifyOtp.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // RESET PASSWORD
+      .addCase(resetPassword.pending, (state) => {
+        state.isLoading = true;
+      })
+
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+
+      .addCase(resetPassword.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });
