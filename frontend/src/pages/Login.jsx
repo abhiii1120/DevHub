@@ -148,7 +148,7 @@ const Login = () => {
           )}
 
           {/* Submit */}
-          <FormButton but="submit" disabled={isLoading}>
+          <FormButton type="submit" disabled={isLoading}>
             <span>
               {isLoading ? "Signing In..." : "Sign In"}
             </span>
