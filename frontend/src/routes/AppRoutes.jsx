@@ -8,6 +8,7 @@ import ProtectedRoutes from "./ProtectedRoutes";
 import MainLayout from "@/layouts/MainLayout";
 import MainPage from "@/pages/MainPage";
 import ForgotPassword from "@/pages/ForgetPassword";
+import ProjectsPage from "@/pages/ProjectsPage";
 const AppRoutes = () => {
   let router = createBrowserRouter([
     {
@@ -45,6 +46,10 @@ const AppRoutes = () => {
             {
               path: "",
               element: <MainPage />,
+            },
+            {
+              path: "/main/projects",
+              element: <ProjectsPage />,
             },
           ],
         },

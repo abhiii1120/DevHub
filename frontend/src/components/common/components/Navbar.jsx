@@ -16,8 +16,8 @@ const Navbar = () => {
             DevStack
           </Link>
           <div className="hidden md:flex gap-8">
-            <NavLink>Explore</NavLink>
-            <NavLink>Projects</NavLink>
+            <NavLink to={'/main'}>Explore</NavLink>
+            <NavLink to={'/main/projects'}>Projects</NavLink>
             <NavLink>Blogs</NavLink>
           </div>
         </div>
