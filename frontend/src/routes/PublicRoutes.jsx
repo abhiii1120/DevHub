@@ -11,11 +11,6 @@ const PublicRoutes = () => {
     return <Navigate to="/main" />;
   }
 
-<<<<<<< HEAD
-  // if (isAuthenticated) return <Navigate to={"/main"} />;
-  // if (isloading) return <div>...loading</div>;
-=======
->>>>>>> dd9e65a (Completed auth frontend and backend setup)
   return <Outlet />;
 };
 
