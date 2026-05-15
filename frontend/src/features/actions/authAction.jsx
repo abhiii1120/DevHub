@@ -1,32 +1,34 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import API from "@/lib/axios";
 
-export let loginUser = createAsyncThunk(
+export const loginUser = createAsyncThunk(
   "auth/login",
-  async (Credential, thunkAPI) => {
+  async (credentials, thunkAPI) => {
     try {
-      let res = await axios.post(
-        "https://dummyjson.com/auth/login",
-        Credential,
-      );
-      localStorage.setItem("accessToken", res.data.accessToken);
-      return res;
+      const res = await API.post("/auth/login", credentials);
+
+      localStorage.setItem("token", res.data.data.token);
+
+      return res.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "signup failed",
+        error.response?.data?.message || "Login failed"
       );
     }
-  },
+  }
 );
 
-export let signupUser = createAsyncThunk(
+export const signupUser = createAsyncThunk(
   "auth/signup",
-  async (Credential, thunkAPI) => {
+  async (credentials, thunkAPI) => {
     try {
-      const res = await axios.post("https:dummyjson.com/users/add", Credential);
+      const res = await API.post("/auth/register", credentials);
+
+      return res.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "signup failed",
+        error.response?.data?.message || "Signup failed"
       );
     }
-  },
+  }
 );

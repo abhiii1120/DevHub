@@ -14,6 +14,11 @@ function Icon({ name, className = "" }) {
       {name}
     </span>
   );
+
+    <div>
+      <h1>Hello</h1>
+    </div>
+  )
 }
 
 /** Pill / badge used in the hero section */

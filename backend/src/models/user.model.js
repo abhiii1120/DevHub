@@ -7,56 +7,73 @@ let userSchema = new mongoose.Schema(
       trim: true,
       required: true,
     },
+    username: {
+      type: String,
+      trim: true,
+    },
     email: {
       type: String,
       unique: true,
       trim: true,
       required: true,
     },
+
     bio: {
       type: String,
       default: "",
     },
-    skills: {
-      type: String,
-    },
+
+    skills: [
+      {
+        type: String,
+      },
+    ],
+
     profilePicture: {
       type: String,
       default: "",
     },
+
     bannerImage: {
       type: String,
       default: "",
     },
-    medium: {
+
+    github: {
       type: String,
       default: "",
     },
-    linkedln: {
+
+    linkedin: {
       type: String,
       default: "",
     },
+
     followers: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],
+
     following: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],
+
     password: {
       type: String,
       minlength: 6,
       trim: true,
       required: true,
     },
+
     resetPasswordOTP: {
       type: String,
     },
+
     resetPasswordOTPExpiry: {
       type: Date,
     },
@@ -66,5 +83,6 @@ let userSchema = new mongoose.Schema(
   },
 );
 
-let UserModel = mongoose.model("Users", userSchema);
+let UserModel = mongoose.model("User", userSchema);
+
 module.exports = UserModel;

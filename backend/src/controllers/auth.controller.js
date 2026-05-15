@@ -28,10 +28,15 @@ let registerController = asyncHandler(async (req, res) => {
     expiresIn: "1h",
   });
 
-  res.cookie("token", token);
+  res.cookie("token", token, {
+  httpOnly: true,
+  secure: false,
+});
   return res
     .status(201)
-    .json(new ApiResponse("User registered sucessfully", newUser));
+    .json(
+      new ApiResponse("User registered sucessfully", { user: newUser, token }),
+    );
 });
 let loginController = asyncHandler(async (req, res) => {
   let { email, password } = req.body;
@@ -66,7 +71,9 @@ let loginController = asyncHandler(async (req, res) => {
     secure: false,
   });
 
-  return res.status(200).json(new ApiResponse("Login successful", user));
+  return res
+    .status(200)
+    .json(new ApiResponse("Login successful", { user, token }));
 });
 let forgotPasswordController = asyncHandler(async (req, res) => {
   let { email } = req.body;

@@ -8,9 +8,11 @@ import FormInput from "@/components/common/ui/FormInput";
 import PasswordInput from "@/components/common/ui/PasswordInput";
 import TerminalLogo from "@/components/common/ui/TerminalLogo";
 import TrustBadge from "@/components/common/ui/TrustBadge";
+import {  } from "react-redux";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { signupUser } from "@/features/actions/authAction";
 import {
   ArrowRight,
   BadgeCheck,
@@ -22,22 +24,24 @@ import {
   EyeOff,
 } from "lucide-react";
 import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router";
 
 const Signup = () => {
-  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { isLoading } = useSelector((state) => state.auth);
   const [error, setError] = useState("");
+  const dispatch = useDispatch();
 
   let navigate = useNavigate();
 
-  const handleSignUp = () => {
-    if (!username || !email || !password || !confirmPassword) {
+  const handleSignUp = async () => {
+    if (!name || !email || !password || !confirmPassword) {
       setError("Please fill in all fields.");
       return;
     }
@@ -62,12 +66,23 @@ const Signup = () => {
       return;
     }
 
-    setError("");
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigate("/login");
-    }, 2000);
+    try {
+      const result = await dispatch(
+        signupUser({
+          name: name,
+          email,
+          password,
+        }),
+      );
+
+      if (signupUser.fulfilled.match(result)) {
+        navigate("/");
+      } else {
+        setError(result.payload);
+      }
+    } catch (error) {
+      setError(error.message || "Signup failed");
+    }
   };
 
   const Password_Requirements = [
@@ -85,14 +100,14 @@ const Signup = () => {
         <AuthCard>
           <TerminalLogo name="DevStack" tagline="Create Your Account" />
           <div className="space-y-5">
-            <FormField id="username" label="Username" icon={User}>
+            <FormField id="name" label="name" icon={User}>
               <FormInput
-                id="username"
+                id="name"
                 type="text"
                 placeholder="john_doe"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoComplete="name"
               />
             </FormField>
             <FormField id="email" label="Email Address" icon={Mail}>
@@ -159,7 +174,7 @@ const Signup = () => {
               </Alert>
             )}
 
-            <FormButton onClick={handleSignUp} disabled={loading}>
+            <FormButton onClick={handleSignUp} disabled={isLoading}>
               <span>Create Account</span>
               <ArrowRight className="w-4 h-4" />
             </FormButton>

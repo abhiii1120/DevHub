@@ -9,28 +9,46 @@ import PasswordInput from "@/components/common/ui/PasswordInput";
 import TerminalLogo from "@/components/common/ui/TerminalLogo";
 import TrustBadge from "@/components/common/ui/TrustBadge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ArrowRight, BadgeCheck, Lock, Mail, Shield } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "@/features/actions/authAction";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const dispatch = useDispatch();
+
+  const { isLoading } = useSelector((state) => state.auth);
 
   let navigate = useNavigate();
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     if (!email || !password) {
       setError("Please fill in all fields.");
       return;
     }
-    setError("");
-    setLoading(true);
-    setTimeout(() => setLoading(false), 2000);
+
+    try {
+      const result = await dispatch(
+        loginUser({
+          email,
+          password,
+        }),
+      );
+
+      if (loginUser.fulfilled.match(result)) {
+        navigate("/main");
+      } else {
+        setError(result.payload);
+      }
+    } catch (error) {
+      setError("Login failed", error);
+    }
   };
 
   return (
@@ -38,6 +56,7 @@ const Login = () => {
       <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
         <AuthCard>
           <TerminalLogo name="DevStack" tagline="Authentication Gateway" />
+
           <div className="space-y-6">
             <FormField id="email" label="Email Address" icon={Mail}>
               <FormInput
@@ -79,23 +98,29 @@ const Login = () => {
               </Alert>
             )}
 
-            <FormButton onClick={handleSignIn} disabled={loading}>
-              <span>Sign In</span>
+            <FormButton onClick={handleSignIn} disabled={isLoading}>
+              <span>{isLoading ? "Signing In..." : "Sign In"}</span>
+
               <ArrowRight className="w-4 h-4" />
             </FormButton>
+
             <Divider label="Don't have an account" />
+
             <FormButton
               onClick={() => navigate("/signup")}
               variant="outline"
               type="secondary"
             >
               <span>Sign Up</span>
+
               <ArrowRight className="w-4 h-4" />
             </FormButton>
 
             <div className="flex items-center justify-center gap-4 pt-5 border-t border-gray-200 dark:border-gray-800">
               <TrustBadge icon={Shield} label="Encrypted SSL" />
+
               <div className="w-px h-3 bg-gray-200 dark:bg-gray-700" />
+
               <TrustBadge icon={BadgeCheck} label="ISO 27001" />
             </div>
           </div>
