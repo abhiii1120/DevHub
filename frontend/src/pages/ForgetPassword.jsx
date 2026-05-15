@@ -1,13 +1,14 @@
+// ForgotPassword.jsx
+
 import AuthCard from "@/components/common/ui/AuthCard";
-import Divider from "@/components/common/ui/Divider";
 import FormButton from "@/components/common/ui/FormButton";
 import FormField from "@/components/common/ui/FormField";
 import FormInput from "@/components/common/ui/FormInput";
-import PasswordInput from "@/components/common/ui/PasswordInput";
 import TerminalLogo from "@/components/common/ui/TerminalLogo";
 import TrustBadge from "@/components/common/ui/TrustBadge";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+
 import {
   ArrowRight,
   BadgeCheck,
@@ -18,220 +19,300 @@ import {
   ArrowLeft,
   CheckCircle,
 } from "lucide-react";
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 
+import { useDispatch, useSelector } from "react-redux";
+
+import {
+  forgotPassword,
+  verifyOtp,
+  resetPassword,
+} from "@/features/actions/authAction";
+
 const ForgotPassword = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { isLoading } = useSelector((state) => state.auth);
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
+
   const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [resendCooldown, setResendCooldown] = useState(0);
-
-  let navigate = useNavigate();
+  const [resendCooldown, setResendCooldown] =
+    useState(0);
 
   // Password requirements
   const PASSWORD_REQUIREMENTS = [
-    { label: "At least 6 characters", check: (pwd) => pwd.length >= 6 },
+    {
+      label: "At least 6 characters",
+      check: (pwd) => pwd.length >= 6,
+    },
     {
       label: "At least one uppercase letter",
       check: (pwd) => /[A-Z]/.test(pwd),
     },
-    { label: "At least one number", check: (pwd) => /[0-9]/.test(pwd) },
+    {
+      label: "At least one number",
+      check: (pwd) => /[0-9]/.test(pwd),
+    },
   ];
-
-  // Handle OTP input change
+  // OTP Input Change
   const handleOtpChange = (index, value) => {
     if (value.length <= 1 && /^\d*$/.test(value)) {
       const newOtp = [...otp];
+
       newOtp[index] = value;
+
       setOtp(newOtp);
 
-      // Auto-focus next input
+      // Auto focus next
       if (value && index < 5) {
-        const nextInput = document.getElementById(`otp-${index + 1}`);
+        const nextInput = document.getElementById(
+          `otp-${index + 1}`,
+        );
+
         if (nextInput) nextInput.focus();
       }
     }
   };
 
-  // Handle OTP key press
+  // OTP Key Press
   const handleOtpKeyPress = (index, e) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      const prevInput = document.getElementById(`otp-${index - 1}`);
+    if (
+      e.key === "Backspace" &&
+      !otp[index] &&
+      index > 0
+    ) {
+      const prevInput = document.getElementById(
+        `otp-${index - 1}`,
+      );
+
       if (prevInput) prevInput.focus();
     }
   };
 
-  // Step 1: Send OTP
-  const handleSendOtp = async () => {
-    if (!email) {
-      setError("Please enter your email address.");
-      return;
-    }
+  // Start resend timer
+  const startResendCooldown = () => {
+    setResendCooldown(30);
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
 
-    setError("");
-    setLoading(true);
+          return 0;
+        }
 
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      setSuccess("OTP sent to your email address!");
-      setStep(2);
-
-      // Start resend cooldown
-      setResendCooldown(30);
-      const timer = setInterval(() => {
-        setResendCooldown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }, 1500);
-  };
-
-  // Step 2: Verify OTP
-  const handleVerifyOtp = () => {
-    const otpValue = otp.join("");
-
-    if (otpValue.length !== 6) {
-      setError("Please enter the 6-digit OTP.");
-      return;
-    }
-
-    setError("");
-    setLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      setSuccess("OTP verified successfully!");
-      setStep(3);
-    }, 1500);
-  };
-
-  // Resend OTP
-  const handleResendOtp = () => {
-    if (resendCooldown > 0) return;
-
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setSuccess("OTP resent to your email!");
-      setResendCooldown(30);
-
-      const timer = setInterval(() => {
-        setResendCooldown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+        return prev - 1;
+      });
     }, 1000);
   };
 
-  // Step 3: Reset Password
-  const handleResetPassword = () => {
+  // SEND OTP
+  const handleSendOtp = async () => {
+    setError("");
+    setSuccess("");
+
+    if (!email) {
+      setError("Please enter email");
+
+      return;
+    }
+
+    const result = await dispatch(
+      forgotPassword(email),
+    );
+
+    if (forgotPassword.fulfilled.match(result)) {
+      setSuccess("OTP sent successfully");
+
+      setStep(2);
+
+      startResendCooldown();
+    } else {
+      setError(result.payload);
+    }
+  };
+
+  // VERIFY OTP
+  const handleVerifyOtp = async () => {
+    setError("");
+    setSuccess("");
+
+    const otpValue = otp.join("");
+
+    if (otpValue.length !== 6) {
+      setError("Please enter 6 digit OTP");
+
+      return;
+    }
+
+    const result = await dispatch(
+      verifyOtp({
+        email,
+        otp: otpValue,
+      }),
+    );
+
+    if (verifyOtp.fulfilled.match(result)) {
+      setSuccess("OTP verified successfully");
+
+      setStep(3);
+    } else {
+      setError(result.payload);
+    }
+  };
+
+  // RESEND OTP
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+
+    setError("");
+    setSuccess("");
+
+    const result = await dispatch(
+      forgotPassword(email),
+    );
+
+    if (forgotPassword.fulfilled.match(result)) {
+      setSuccess("OTP resent successfully");
+
+      startResendCooldown();
+    } else {
+      setError(result.payload);
+    }
+  };
+
+  // RESET PASSWORD
+  const handleResetPassword = async () => {
+    setError("");
+    setSuccess("");
+
     if (!newPassword || !confirmPassword) {
-      setError("Please fill in all fields.");
+      setError("Please fill all fields");
+
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError("Passwords do not match");
+
       return;
     }
 
-    const failedRequirement = PASSWORD_REQUIREMENTS.find(
-      (req) => !req.check(newPassword),
-    );
+    const failedRequirement =
+      PASSWORD_REQUIREMENTS.find(
+        (req) => !req.check(newPassword),
+      );
+
     if (failedRequirement) {
       setError(failedRequirement.label);
+
       return;
     }
 
-    setError("");
-    setLoading(true);
+    const otpValue = otp.join("");
 
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      setSuccess("Password reset successfully!");
+    const result = await dispatch(
+      resetPassword({
+        email,
+        otp: otpValue,
+        newPassword,
+      }),
+    );
+
+    if (resetPassword.fulfilled.match(result)) {
+      setSuccess("Password reset successful");
+
       setTimeout(() => {
-        navigate("/login");
+        navigate("/");
       }, 1500);
-    }, 1500);
+    } else {
+      setError(result.payload);
+    }
   };
 
-  // Step 1: Email Screen
+  // STEP 1
   const renderEmailScreen = () => (
     <div className="space-y-6">
       <div className="text-center mb-6">
         <h2 className="text-lg font-semibold text-foreground mb-2">
           Forgot Password?
         </h2>
+
         <p className="text-sm text-muted-foreground">
-          Enter your email address and we'll send you a verification code
+          Enter your email to receive OTP
         </p>
       </div>
 
-      <FormField id="email" label="Email Address" icon={Mail}>
+      <FormField
+        id="email"
+        label="Email Address"
+        icon={Mail}
+      >
         <FormInput
           id="email"
           type="email"
           placeholder="dev@stack.io"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          autoComplete="email"
         />
       </FormField>
 
       {error && (
-        <Alert className="bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 py-2 px-3">
-          <AlertDescription className="font-mono text-[11px] text-red-600 dark:text-red-400">
+        <Alert className="bg-red-50 border-red-200 py-2 px-3">
+          <AlertDescription className="text-red-500 text-xs font-mono">
             {error}
           </AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 py-2 px-3">
-          <AlertDescription className="font-mono text-[11px] text-green-600 dark:text-green-400">
+        <Alert className="bg-green-50 border-green-200 py-2 px-3">
+          <AlertDescription className="text-green-500 text-xs font-mono">
             {success}
           </AlertDescription>
         </Alert>
       )}
 
-      <FormButton onClick={handleSendOtp} disabled={loading}>
-        <span>Send Verification Code</span>
+      <FormButton
+        onClick={handleSendOtp}
+        disabled={isLoading}
+      >
+        <span>
+          {isLoading
+            ? "Sending OTP..."
+            : "Send Verification Code"}
+        </span>
+
         <ArrowRight className="w-4 h-4" />
       </FormButton>
     </div>
   );
 
-  // Step 2: OTP Screen
+  // STEP 2
   const renderOtpScreen = () => (
     <div className="space-y-6">
       <div className="text-center mb-6">
         <h2 className="text-lg font-semibold text-foreground mb-2">
-          Verify Your Identity
+          Verify OTP
         </h2>
+
         <p className="text-sm text-muted-foreground">
-          Enter the 6-digit code sent to {email}
+          Enter OTP sent to {email}
         </p>
       </div>
 
@@ -243,32 +324,40 @@ const ForgotPassword = () => {
             type="text"
             maxLength={1}
             value={digit}
-            onChange={(e) => handleOtpChange(index, e.target.value)}
-            onKeyDown={(e) => handleOtpKeyPress(index, e)}
-            className="w-12 h-12 text-center text-lg font-mono font-semibold bg-white/80 dark:bg-gray-900/60 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 dark:text-gray-100"
+            onChange={(e) =>
+              handleOtpChange(index, e.target.value)
+            }
+            onKeyDown={(e) =>
+              handleOtpKeyPress(index, e)
+            }
+            className="w-12 h-12 text-center text-lg font-semibold border rounded-lg"
           />
         ))}
       </div>
 
       <div className="text-center">
-        <FormButton onClick={handleResendOtp} disabled={resendCooldown > 0}>
+        <button
+          onClick={handleResendOtp}
+          disabled={resendCooldown > 0}
+          className="text-sm text-primary font-medium"
+        >
           {resendCooldown > 0
-            ? `Resend code in ${resendCooldown}s`
-            : "Resend code"}
-        </FormButton>
+            ? `Resend OTP in ${resendCooldown}s`
+            : "Resend OTP"}
+        </button>
       </div>
 
       {error && (
-        <Alert className="bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 py-2 px-3">
-          <AlertDescription className="font-mono text-[11px] text-red-600 dark:text-red-400">
+        <Alert className="bg-red-50 border-red-200 py-2 px-3">
+          <AlertDescription className="text-red-500 text-xs font-mono">
             {error}
           </AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 py-2 px-3">
-          <AlertDescription className="font-mono text-[11px] text-green-600 dark:text-green-400">
+        <Alert className="bg-green-50 border-green-200 py-2 px-3">
+          <AlertDescription className="text-green-500 text-xs font-mono">
             {success}
           </AlertDescription>
         </Alert>
@@ -278,17 +367,23 @@ const ForgotPassword = () => {
         <FormButton
           onClick={() => setStep(1)}
           variant="outline"
-          type="secondary"
+          type="button"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
+
           Back
         </FormButton>
-        <FormButton onClick={handleVerifyOtp} disabled={loading}>
-          {loading ? (
+
+        <FormButton
+          onClick={handleVerifyOtp}
+          disabled={isLoading}
+        >
+          {isLoading ? (
             <span className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
               <span>Verify OTP</span>
+
               <CheckCircle className="w-4 h-4" />
             </>
           )}
@@ -297,71 +392,84 @@ const ForgotPassword = () => {
     </div>
   );
 
-  // Step 3: New Password Screen
+  // STEP 3
   const renderPasswordScreen = () => (
     <div className="space-y-5">
       <div className="text-center mb-6">
         <h2 className="text-lg font-semibold text-foreground mb-2">
-          Create New Password
+          Reset Password
         </h2>
+
         <p className="text-sm text-muted-foreground">
-          Enter your new password below
+          Create your new password
         </p>
       </div>
 
-      <FormField id="newPassword" label="New Password" icon={Lock}>
+      <FormField
+        id="newPassword"
+        label="New Password"
+        icon={Lock}
+      >
         <FormInput
           id="newPassword"
           type="password"
           placeholder="Enter new password"
           value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
+          onChange={(e) =>
+            setNewPassword(e.target.value)
+          }
         />
       </FormField>
 
-      <FormField id="confirmPassword" label="Confirm Password" icon={KeyRound}>
+      <FormField
+        id="confirmPassword"
+        label="Confirm Password"
+        icon={KeyRound}
+      >
         <FormInput
           id="confirmPassword"
           type="password"
-          placeholder="Confirm new password"
+          placeholder="Confirm password"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          onChange={(e) =>
+            setConfirmPassword(e.target.value)
+          }
         />
       </FormField>
 
       {/* Password Requirements */}
       {newPassword && (
-        <div className="text-[11px] font-mono text-muted-foreground space-y-1.5">
-          <p className="text-xs font-semibold mb-1.5">Password requirements:</p>
-          <ul className="space-y-1">
-            {PASSWORD_REQUIREMENTS.map((req, index) => (
-              <li
-                key={index}
-                className={`flex items-center gap-2 ${
-                  req.check(newPassword)
-                    ? "text-green-500"
-                    : "text-muted-foreground"
-                }`}
-              >
-                <span>{req.check(newPassword) ? "✓" : "○"}</span>
-                <span>{req.label}</span>
-              </li>
-            ))}
-          </ul>
+        <div className="text-xs font-mono space-y-2">
+          {PASSWORD_REQUIREMENTS.map((req, index) => (
+            <div
+              key={index}
+              className={`flex items-center gap-2 ${
+                req.check(newPassword)
+                  ? "text-green-500"
+                  : "text-muted-foreground"
+              }`}
+            >
+              <span>
+                {req.check(newPassword) ? "✓" : "○"}
+              </span>
+
+              <span>{req.label}</span>
+            </div>
+          ))}
         </div>
       )}
 
       {error && (
-        <Alert className="bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 py-2 px-3">
-          <AlertDescription className="font-mono text-[11px] text-red-600 dark:text-red-400">
+        <Alert className="bg-red-50 border-red-200 py-2 px-3">
+          <AlertDescription className="text-red-500 text-xs font-mono">
             {error}
           </AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 py-2 px-3">
-          <AlertDescription className="font-mono text-[11px] text-green-600 dark:text-green-400">
+        <Alert className="bg-green-50 border-green-200 py-2 px-3">
+          <AlertDescription className="text-green-500 text-xs font-mono">
             {success}
           </AlertDescription>
         </Alert>
@@ -371,17 +479,23 @@ const ForgotPassword = () => {
         <FormButton
           onClick={() => setStep(2)}
           variant="outline"
-          type="secondary"
+          type="button"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
+
           Back
         </FormButton>
-        <FormButton onClick={handleResetPassword} disabled={loading}>
-          {loading ? (
+
+        <FormButton
+          onClick={handleResetPassword}
+          disabled={isLoading}
+        >
+          {isLoading ? (
             <span className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
               <span>Reset Password</span>
+
               <CheckCircle className="w-4 h-4" />
             </>
           )}
@@ -393,22 +507,36 @@ const ForgotPassword = () => {
   return (
     <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
       <AuthCard>
-        <TerminalLogo name="DevStack" tagline="Password Recovery" />
+        <TerminalLogo
+          name="DevStack"
+          tagline="Password Recovery"
+        />
 
         {step === 1 && renderEmailScreen()}
+
         {step === 2 && renderOtpScreen()}
+
         {step === 3 && renderPasswordScreen()}
 
         <div className="mt-6 pt-5 border-t border-gray-200 dark:border-gray-800">
           <div className="flex items-center justify-center gap-4">
-            <TrustBadge icon={Shield} label="Secure Reset" />
+            <TrustBadge
+              icon={Shield}
+              label="Secure Reset"
+            />
+
             <div className="w-px h-3 bg-gray-200 dark:bg-gray-700" />
-            <TrustBadge icon={BadgeCheck} label="256-bit SSL" />
+
+            <TrustBadge
+              icon={BadgeCheck}
+              label="256-bit SSL"
+            />
           </div>
         </div>
 
         <p className="text-center mt-5 text-sm text-gray-600 dark:text-gray-400">
           Remember your password?{" "}
+
           <Link
             to="/"
             className="text-primary font-semibold hover:text-primary/80 transition-colors"
