@@ -1,7 +1,7 @@
 require("dotenv").config();
-let app = require("./src/app");
+let app = require("../src/app");
 
-const connectDb = require("./src/config/db")
+const connectDb = require("../src/config/db")
 
 connectDb();
 

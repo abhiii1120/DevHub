@@ -21,6 +21,18 @@ const createBlogController = asyncHandler(async (req, res) => {
     .json(new ApiResponse("Blog Created Sucessfully", blog));
 });
 
+// GET ALL BLOGS
+const getAllBlogsController = asyncHandler(async (req, res) => {
+  const blogs = await BlogModel.find()
+    .populate("author", "name email")
+    .sort({ createdAt: -1 });
+
+  return res
+    .status(200)
+    .json(new ApiResponse("Blogs fetched successfully", blogs));
+});
+
+
 module.exports = {
     createBlogController,
 }
