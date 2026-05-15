@@ -83,6 +83,8 @@ const Signup = () => {
 
   const onSubmit = async (data) => {
     try {
+      console.log("FORM SUBMITTED");
+  console.log(data);
       const result = await dispatch(
         signupUser({
           name: data.name,
@@ -251,7 +253,7 @@ const Signup = () => {
           )}
 
           {/* Submit */}
-          <FormButton buttonType="submit" disabled={isLoading}>
+          <FormButton type="submit" disabled={isLoading}>
             <span>
               {isLoading
                 ? "Creating Account..."
